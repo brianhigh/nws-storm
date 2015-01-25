@@ -1,3 +1,3 @@
-# NWS Storm Data
+# US Storm Data Analysis
 
-Analysis of NWS Storm Data
+See [RPubs post](http://rpubs.com/brianhigh/severe_weather_impacts) for more information.
