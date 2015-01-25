@@ -1,0 +1,224 @@
+---
+title: "Public Health and Economic Impacts of Severe Weather Events in the US"
+author: "Brian High"
+date: "01/25/2015"
+output: html_document
+---
+
+## Synopsis
+
+To determine the primary impacts of weather events on US health and economic
+wellbeing, we will analyze data from the 
+[NOAA National Climatic Data Center](http://www.ncdc.noaa.gov/stormevents/). 
+
+The data includes counts by 
+storm event type for injuries, fatalities, property damage and crop 
+damage. We will compare totals of these counts for the entire time period 
+to determine the top five weather event impacts. Then we will group these 
+totals by month to plot the seasonal occurrence of these events. By seeing 
+the most significant weather events and their impacts over the course of the 
+year, decisions can be made to allocate resources to better manage these 
+impacts.
+
+Across the United States, the types of events which are the most harmful 
+with respect to population health are tornados, heat, thunderstorms, 
+lightning, and flooding. Floods, hurricanes, typhoons, tornadoes, storm 
+surge, and hail have the greatest economic consequences.
+
+## Data Processing
+
+### Load and preprocess the data
+
+Download the compressed CSV file and load it into a data.table. Remove extra 
+columns, format the date columns, add a Month column, and convert property 
+and crop damage columns to USD.
+
+```{r, echo = TRUE, cache=TRUE}
+# Download the data file (if missing)
+url <- "http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+zipfile <- "StormData.csv.bz2"
+if (! file.exists(zipfile)) { 
+    download.file(url, zipfile , "auto") 
+}
+
+# Load into a data table
+library(data.table)
+stormdata <- as.data.table(read.csv(bzfile(zipfile), header = TRUE, 
+                      stringsAsFactors = FALSE))
+
+# Remove extra columns
+stormdata[, c("STATE__","BGN_TIME","TIME_ZONE","COUNTY","COUNTYNAME",
+              "BGN_RANGE","BGN_AZI","BGN_LOCATI","END_TIME","COUNTY_END",
+              "COUNTYENDN","END_RANGE","END_AZI","END_LOCATI","LENGTH",
+              "WIDTH","F","MAG","WFO","STATEOFFIC","ZONENAMES","LATITUDE",
+              "LONGITUDE","LATITUDE_E","LONGITUDE_","REMARKS","REFNUM") := NULL]
+
+# Prepare date columns
+suppressMessages(library(lubridate))
+stormdata[, c("BGN_DATE", "END_DATE") 
+                    := list(mdy_hms(BGN_DATE), mdy_hms(END_DATE))]
+stormdata[, "Month" := as.factor(month(BGN_DATE))]
+
+# Convert property damage amounts to dollars
+stormdata[, PROPDMGEXP := gsub("^[^HKMBhkmb]*$", 0, PROPDMGEXP)]
+stormdata[, PROPDMGEXP := gsub("^[Hh]{1}$", 2, PROPDMGEXP)]
+stormdata[, PROPDMGEXP := gsub("^[Kk]{1}$", 3, PROPDMGEXP)]
+stormdata[, PROPDMGEXP := gsub("^[Mm]{1}$", 6, PROPDMGEXP)]
+stormdata[, PROPDMGEXP := gsub("^[Bb]{1}$", 9, PROPDMGEXP)]
+stormdata[, PROPDMG := as.numeric(PROPDMG)*10^as.numeric(PROPDMGEXP)]
+
+# Convert crop damage amounts to dollars
+stormdata[, CROPDMGEXP := gsub("^[^HKMBhkmb]*$", 0, CROPDMGEXP)]
+stormdata[, CROPDMGEXP := gsub("^[Hh]{1}$", 2, CROPDMGEXP)]
+stormdata[, CROPDMGEXP := gsub("^[Kk]{1}$", 3, CROPDMGEXP)]
+stormdata[, CROPDMGEXP := gsub("^[Mm]{1}$", 6, CROPDMGEXP)]
+stormdata[, CROPDMGEXP := gsub("^[Bb]{1}$", 9, CROPDMGEXP)]
+stormdata[, CROPDMG := as.numeric(CROPDMG)*10^as.numeric(CROPDMGEXP)]
+```
+
+### Public Health Effects
+
+Filter fatalities and injuries for 50 US states and group by event type.
+
+```{r, echo = TRUE, cache=TRUE}
+library(datasets)
+health <- stormdata[STATE %in% state.abb, .(FATALITIES, INJURIES, Month), 
+                    by=EVTYPE]
+```
+
+#### Top 5 Weather Event Types for Injuries
+
+Determine the top five weather event types for injuries with a sum of all 
+injuries, grouped by event type, for the entire time period.
+
+```{r, echo = TRUE, cache=TRUE}
+injuries <- health[,.(Injuries=sum(INJURIES)), EVTYPE]
+setkey(injuries, Injuries)
+topfiveinjuries <- tail(injuries, 5)
+topfiveinjuries
+```
+
+From the list of top five weather event types for injuries, calculate injury 
+sums by event type and month.
+
+```{r, echo = TRUE, cache=TRUE}
+injuriesbymonth <- health[EVTYPE %in% topfiveinjuries$EVTYPE,
+                        .(Injuries=sum(INJURIES)), .(EVTYPE, Month)]
+injuriesbymonth[, "EventType" := factor(EVTYPE, levels=rev(topfiveinjuries$EVTYPE))]
+```
+
+#### Top 5 Weather Events for Fatalities
+
+Determine the top five weather event types for fatalities with a sum of all 
+fatalities, grouped by event type, for the entire time period.
+
+```{r, echo = TRUE, cache=TRUE}
+fatalities <- health[,.(Fatalities=sum(FATALITIES)), EVTYPE]
+setkey(fatalities, Fatalities)
+topfivefatalities <- tail(fatalities, 5)
+topfivefatalities
+```
+
+From the list of top five weather event types for fatalities, calculate fatality 
+sums by event type and month.
+
+```{r, echo = TRUE, cache=TRUE}
+fatalitiesbymonth <- health[EVTYPE %in% topfivefatalities$EVTYPE,
+                        .(Injuries=sum(FATALITIES)), .(EVTYPE, Month)]
+fatalitiesbymonth[, "EventType" := factor(EVTYPE, levels=rev(topfivefatalities$EVTYPE))]
+```
+
+### Economic Effects 
+
+Filter property and crop damage for 50 US states and group by event type.
+
+```{r, echo = TRUE, cache=TRUE}
+library(datasets)
+economic <- stormdata[STATE %in% state.abb, 
+                      .(PROPDMG, CROPDMG, Month), by=EVTYPE]
+```
+
+#### Top 5 Weather Event Types for Damage
+
+Determine the top five weather event types for property and crop damage with 
+a sum of all damage, grouped by event type, for the entire time period.
+
+```{r, echo = TRUE, cache=TRUE}
+damage <- economic[,.(Damage=sum(
+    sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
+setkey(damage, Damage)
+topfivedamage <- tail(damage, 5)
+topfivedamage
+```
+
+From the list of top five weather event types for crop and property damage, 
+calculate damage sums by event type and month. Convert damage sums to 
+millions of US dollars. 
+
+```{r, echo = TRUE, cache=TRUE}
+damagebymonth <- economic[EVTYPE %in% topfivedamage$EVTYPE,
+    .(Damage=sum(
+        sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), 
+    .(EVTYPE, Month)]
+damagebymonth[, "EventType" := factor(EVTYPE, levels=rev(topfivedamage$EVTYPE))]
+```
+
+## Results
+
+### Public Health Effects
+
+This plot shows the top five weather event types for injuries.
+
+```{r, echo = TRUE, fig.height=5, fig.width=7}
+library(ggplot2)
+ggplot(injuriesbymonth, 
+       aes(Month, Injuries, group=EventType, color=EventType)) +
+    geom_line() +
+    ggtitle("Top 5 Most Harmful\nWeather Event Types\n(Total US Injuries per Month, 1950-2011)") +
+    ylab("Number of Injuries") +
+    theme(plot.title = element_text(lineheight=.8, face="bold")) +
+    scale_colour_brewer(palette="Set1") + 
+    theme(legend.title=element_blank())
+```
+
+This plot shows the top five weather event types for fatalities.
+
+```{r, echo = TRUE, fig.height=5, fig.width=7}
+ggplot(fatalitiesbymonth, 
+       aes(Month, Injuries, group=EventType, color=EventType)) +
+    geom_line() +
+    ggtitle("Top 5 Most Harmful\nWeather Event Types\n(Total US Fatalities per Month, 1950-2011)") +
+    ylab("Number of Fatalities") +
+    theme(plot.title = element_text(lineheight=.8, face="bold")) +
+    scale_colour_brewer(palette="Set1") +
+    theme(legend.title=element_blank())
+```
+
+#### Summary of Health Effects
+
+Across the United States, springtime tornadoes are the most harmful to 
+health, though heat, thunderstorms and lightning in midsummer also have a 
+large impact. Tornadoes and flooding become the primary health hazards in 
+the fall.
+
+### Economic Effects
+
+This plot shows the top five weather event types for economic impact.
+
+```{r, echo = TRUE, fig.height=5, fig.width=7}
+ggplot(damagebymonth, 
+       aes(Month, Damage, group=EventType, color=EventType)) +
+    geom_line() +
+    ggtitle("Top 5 Most Harmful\nWeather Event Types\n(Total US Damage per Month, 1950-2011)") +
+    ylab("Amount of Damage in Millions of US$") +
+    theme(plot.title = element_text(lineheight=.8, face="bold")) +
+    scale_colour_brewer(palette="Set1") + 
+    theme(legend.title=element_blank())
+```
+
+#### Summary of Economic Effects
+
+Across the United States, floods, especially in the winter and spring, 
+cause the most economic damage, followed by hurricanes, typhoons, 
+tornadoes, and storm surge. Hail also causes considerable damage, 
+mostly in the spring.
