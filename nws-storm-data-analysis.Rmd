@@ -17,7 +17,7 @@ which have been recorded, so our analysis will only cover those years.
 The data includes counts by 
 storm event type for injuries, fatalities, property damage and crop 
 damage. We will compare totals of these counts for the entire time period 
-to determine the top five weather event impacts. Then we will group these 
+to determine the top ten weather event impacts. Then we will group these 
 totals by month to plot the seasonal occurrence of these events. By seeing 
 the most significant weather events and their impacts over the course of the 
 year, decisions can be made to allocate resources to better manage these 
@@ -26,7 +26,9 @@ impacts.
 Across the United States from 1996 to 2011, the types of events most 
 associated with adverse impacts to population health are tornados, heat, 
 flooding, lightning, and thunderstorm winds. Floods, hurricanes, typhoons, 
-storm surge, tornadoes, and hail have the greatest economic consequences.
+storm surge, tornadoes, and hail have the greatest economic consequences. Other 
+important events are rip currents, high winds, ice storms, avalanche, floods, 
+drought, and ice storms.
 
 ## Data Processing
 
@@ -96,46 +98,46 @@ Group fatalities and injuries by event type.
 health <- stormdata[, .(FATALITIES, INJURIES, Month), by=EVTYPE]
 ```
 
-#### Top 5 Weather Event Types for Injuries
+#### Top 10 Weather Event Types for Injuries
 
-Determine the top five weather event types for injuries with a sum of all 
+Determine the top ten weather event types for injuries with a sum of all 
 injuries, grouped by event type, for the entire time period.
 
 ```{r, echo = TRUE, cache=TRUE}
 injuries <- health[, .(Injuries=sum(INJURIES)), EVTYPE]
 setkey(injuries, Injuries)
-topfiveinjuries <- tail(injuries, 5)
-topfiveinjuries[order(-Injuries)]
+topteninjuries <- tail(injuries, 10)
+topteninjuries[order(-Injuries)]
 ```
 
-From the list of top five weather event types for injuries, calculate injury 
+From the list of top ten weather event types for injuries, calculate injury 
 sums by event type and month.
 
 ```{r, echo = TRUE, cache=TRUE}
-injuriesbymonth <- health[EVTYPE %in% topfiveinjuries$EVTYPE,
+injuriesbymonth <- health[EVTYPE %in% topteninjuries$EVTYPE,
                         .(Injuries=sum(INJURIES)), .(EVTYPE, Month)]
-injuriesbymonth[, "EventType" := factor(EVTYPE, levels=rev(topfiveinjuries$EVTYPE))]
+injuriesbymonth[, "EventType" := factor(EVTYPE, levels=rev(topteninjuries$EVTYPE))]
 ```
 
-#### Top 5 Weather Events for Fatalities
+#### Top 10 Weather Events for Fatalities
 
-Determine the top five weather event types for fatalities with a sum of all 
+Determine the top ten weather event types for fatalities with a sum of all 
 fatalities, grouped by event type, for the entire time period.
 
 ```{r, echo = TRUE, cache=TRUE}
 fatalities <- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
 setkey(fatalities, Fatalities)
-topfivefatalities <- tail(fatalities, 5)
-topfivefatalities[order(-Fatalities)]
+toptenfatalities <- tail(fatalities, 10)
+toptenfatalities[order(-Fatalities)]
 ```
 
-From the list of top five weather event types for fatalities, calculate fatality 
+From the list of top ten weather event types for fatalities, calculate fatality 
 sums by event type and month.
 
 ```{r, echo = TRUE, cache=TRUE}
-fatalitiesbymonth <- health[EVTYPE %in% topfivefatalities$EVTYPE,
+fatalitiesbymonth <- health[EVTYPE %in% toptenfatalities$EVTYPE,
                         .(Fatalities=sum(FATALITIES)), .(EVTYPE, Month)]
-fatalitiesbymonth[, "EventType" := factor(EVTYPE, levels=rev(topfivefatalities$EVTYPE))]
+fatalitiesbymonth[, "EventType" := factor(EVTYPE, levels=rev(toptenfatalities$EVTYPE))]
 ```
 
 ### Economic Effects 
@@ -146,60 +148,70 @@ Group property and crop damage by event type.
 economic <- stormdata[, .(PROPDMG, CROPDMG, Month), by=EVTYPE]
 ```
 
-#### Top 5 Weather Event Types for Damage
+#### Top 10 Weather Event Types for Damage
 
-Determine the top five weather event types for property and crop damage with 
+Determine the top ten weather event types for property and crop damage with 
 a sum of all damage, grouped by event type, for the entire time period.
 
 ```{r, echo = TRUE, cache=TRUE}
 damage <- economic[, .(Damage=sum(
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
 setkey(damage, Damage)
-topfivedamage <- tail(damage, 5)
-topfivedamage[order(-Damage)]
+toptendamage <- tail(damage, 10)
+toptendamage[order(-Damage)]
 ```
 
-From the list of top five weather event types for crop and property damage, 
+From the list of top ten weather event types for crop and property damage, 
 calculate damage sums by event type and month. Convert damage sums to 
 millions of US dollars. 
 
 ```{r, echo = TRUE, cache=TRUE}
-damagebymonth <- economic[EVTYPE %in% topfivedamage$EVTYPE,
+damagebymonth <- economic[EVTYPE %in% toptendamage$EVTYPE,
     .(Damage=sum(
         sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), 
     .(EVTYPE, Month)]
-damagebymonth[, "EventType" := factor(EVTYPE, levels=rev(topfivedamage$EVTYPE))]
+damagebymonth[, "EventType" := factor(EVTYPE, levels=rev(toptendamage$EVTYPE))]
 ```
 
 ## Results
 
+We will show three plots which demonstrate the top ten storm event types which have the greatest impact on population health and economics.
+
+```{r, echo = TRUE}
+# Use a color-blind-friendly pallette for plotting 10 colors. 
+# See: http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/
+cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", 
+               "#0072B2", "#D55E00", "#CC79A7", "#996633", 
+               "#999999", "#000000")
+```
+
 ### Public Health Effects
 
-This plot shows the top five weather event types for injuries.
+This plot shows the top ten weather event types for injuries.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
 library(ggplot2)
 ggplot(injuriesbymonth, 
        aes(Month, Injuries, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
-    ggtitle("Public Health Impact of\nTop 5 Most Harmful Weather Event Types\n(Total US Injuries per Month, 1996-2011)") +
+    ggtitle("Public Health Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Injuries per Month, 1996-2011)") +
     ylab("Number of Injuries") +
     theme(plot.title = element_text(lineheight=.8, face="bold")) +
-    scale_colour_brewer(palette="Set1") + 
+    scale_fill_manual(values=cbPalette) + 
     theme(legend.title=element_blank())
 ```
 
-This plot shows the top five weather event types for fatalities.
+This plot shows the top ten weather event types for fatalities.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
 library(ggplot2)
 ggplot(fatalitiesbymonth, 
        aes(Month, Fatalities, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
-    ggtitle("Public Health Impact of\nTop 5 Most Harmful Weather Event Types\n(Total US Fatalities per Month, 1996-2011)") +
+    ggtitle("Public Health Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Fatalities per Month, 1996-2011)") +
     ylab("Number of Fatalities") +
     theme(plot.title = element_text(lineheight=.8, face="bold")) +
-    scale_colour_brewer(palette="Set1") +
+    scale_fill_manual(values=cbPalette) +
     theme(legend.title=element_blank())
 ```
 
@@ -210,21 +222,22 @@ for the weather events recorded from 1996 to 2011. Tornados are most predominant
 in the first half of the year. Heat, particularly in midsummer, appears the most 
 deadly. Floods, especially in October, as well as flash floods, lightning and 
 thunderstorm winds in the summer months, also have a high impact on population 
-health.
+health. Other important events are rip currents, high winds, ice storms, and 
+avalanche.
 
 ### Economic Effects
 
-This plot shows the top five weather event types for economic impact.
+This plot shows the top ten weather event types for economic impact.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
 library(ggplot2)
 ggplot(damagebymonth, 
        aes(Month, Damage, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
-    ggtitle("Economic Impact of\nTop 5 Most Harmful Weather Event Types\n(Total US Damage per Month, 1996-2011)") +
+    ggtitle("Economic Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Damage per Month, 1996-2011)") +
     ylab("Damage in Millions of US$") +
     theme(plot.title = element_text(lineheight=.8, face="bold")) +
-    scale_colour_brewer(palette="Set1") + 
+    scale_fill_manual(values=cbPalette) + 
     theme(legend.title=element_blank())
 ```
 
@@ -233,4 +246,4 @@ ggplot(damagebymonth,
 Across the United States, flooding, especially in the winter and spring, 
 causes the most economic damage, followed by hurricanes, typhoons, storm surge, 
 and tornadoes. Hail also causes significant damage, mostly in the spring and 
-fall.
+fall. Other important events are floods, drought, and ice storms.
