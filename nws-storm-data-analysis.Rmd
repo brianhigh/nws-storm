@@ -30,8 +30,9 @@ surge, and hail have the greatest economic consequences.
 ### Load and preprocess the data
 
 Download the compressed CSV file and load it into a data.table. Remove extra 
-columns, format the date columns, add a Month column, and convert property 
-and crop damage columns to USD.
+columns, format the date columns, add a Month column, convert property 
+and crop damage columns to USD, and filter to include only data from the
+fifty states of the US.
 
 ```{r, echo = TRUE, cache=TRUE}
 # Download the data file (if missing)
@@ -74,16 +75,18 @@ stormdata[, CROPDMGEXP := gsub("^[Kk]{1}$", 3, CROPDMGEXP)]
 stormdata[, CROPDMGEXP := gsub("^[Mm]{1}$", 6, CROPDMGEXP)]
 stormdata[, CROPDMGEXP := gsub("^[Bb]{1}$", 9, CROPDMGEXP)]
 stormdata[, CROPDMG := as.numeric(CROPDMG)*10^as.numeric(CROPDMGEXP)]
+
+# Filter storm data to include only the 50 US states
+library(datasets)
+stormdata <- stormdata[STATE %in% state.abb]
 ```
 
 ### Public Health Effects
 
-Filter fatalities and injuries for 50 US states and group by event type.
+Group fatalities and injuries by event type.
 
 ```{r, echo = TRUE, cache=TRUE}
-library(datasets)
-health <- stormdata[STATE %in% state.abb, .(FATALITIES, INJURIES, Month), 
-                    by=EVTYPE]
+health <- stormdata[, .(FATALITIES, INJURIES, Month), by=EVTYPE]
 ```
 
 #### Top 5 Weather Event Types for Injuries
@@ -124,18 +127,16 @@ sums by event type and month.
 
 ```{r, echo = TRUE, cache=TRUE}
 fatalitiesbymonth <- health[EVTYPE %in% topfivefatalities$EVTYPE,
-                        .(Injuries=sum(FATALITIES)), .(EVTYPE, Month)]
+                        .(Fatalities=sum(FATALITIES)), .(EVTYPE, Month)]
 fatalitiesbymonth[, "EventType" := factor(EVTYPE, levels=rev(topfivefatalities$EVTYPE))]
 ```
 
 ### Economic Effects 
 
-Filter property and crop damage for 50 US states and group by event type.
+Group property and crop damage by event type.
 
 ```{r, echo = TRUE, cache=TRUE}
-library(datasets)
-economic <- stormdata[STATE %in% state.abb, 
-                      .(PROPDMG, CROPDMG, Month), by=EVTYPE]
+economic <- stormdata[, .(PROPDMG, CROPDMG, Month), by=EVTYPE]
 ```
 
 #### Top 5 Weather Event Types for Damage
@@ -172,9 +173,9 @@ This plot shows the top five weather event types for injuries.
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
 library(ggplot2)
 ggplot(injuriesbymonth, 
-       aes(Month, Injuries, group=EventType, color=EventType)) +
-    geom_line() +
-    ggtitle("Top 5 Most Harmful\nWeather Event Types\n(Total US Injuries per Month, 1950-2011)") +
+       aes(Month, Injuries, group=EventType, fill=EventType)) +
+    geom_bar(stat="identity") +
+    ggtitle("Public Health Impact of\nTop 5 Most Harmful Weather Event Types\n(Total US Injuries per Month, 1950-2011)") +
     ylab("Number of Injuries") +
     theme(plot.title = element_text(lineheight=.8, face="bold")) +
     scale_colour_brewer(palette="Set1") + 
@@ -184,10 +185,11 @@ ggplot(injuriesbymonth,
 This plot shows the top five weather event types for fatalities.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
+library(ggplot2)
 ggplot(fatalitiesbymonth, 
-       aes(Month, Injuries, group=EventType, color=EventType)) +
-    geom_line() +
-    ggtitle("Top 5 Most Harmful\nWeather Event Types\n(Total US Fatalities per Month, 1950-2011)") +
+       aes(Month, Fatalities, group=EventType, fill=EventType)) +
+    geom_bar(stat="identity") +
+    ggtitle("Public Health Impact of\nTop 5 Most Harmful Weather Event Types\n(Total US Fatalities per Month, 1950-2011)") +
     ylab("Number of Fatalities") +
     theme(plot.title = element_text(lineheight=.8, face="bold")) +
     scale_colour_brewer(palette="Set1") +
@@ -206,11 +208,12 @@ the fall.
 This plot shows the top five weather event types for economic impact.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
+library(ggplot2)
 ggplot(damagebymonth, 
-       aes(Month, Damage, group=EventType, color=EventType)) +
-    geom_line() +
-    ggtitle("Top 5 Most Harmful\nWeather Event Types\n(Total US Damage per Month, 1950-2011)") +
-    ylab("Amount of Damage in Millions of US$") +
+       aes(Month, Damage, group=EventType, fill=EventType)) +
+    geom_bar(stat="identity") +
+    ggtitle("Economic Impact of\nTop 5 Most Harmful Weather Event Types\n(Total US Damage per Month, 1950-2011)") +
+    ylab("Damage in Millions of US$") +
     theme(plot.title = element_text(lineheight=.8, face="bold")) +
     scale_colour_brewer(palette="Set1") + 
     theme(legend.title=element_blank())
