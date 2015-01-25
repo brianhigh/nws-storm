@@ -40,26 +40,26 @@ data from the fifty states of the US, and convert property and crop damage
 values to US dollars.
 
 ```{r, echo = TRUE, cache=TRUE}
-# Download the data file (if missing)
+# Download the data file (if missing).
 url <- "http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 zipfile <- "StormData.csv.bz2"
 if (! file.exists(zipfile)) { 
     download.file(url, zipfile , "auto") 
 }
 
-# Load into a data table
+# Load into a data.table (faster and more feature-rich than a data.frame).
 library(data.table)
 stormdata <- as.data.table(read.csv(bzfile(zipfile), header = TRUE, 
                       stringsAsFactors = FALSE))
 
-# Remove extra columns
+# Remove extra columns (to free up memory).
 stormdata[, c("STATE__","BGN_TIME","TIME_ZONE","COUNTY","COUNTYNAME",
               "BGN_RANGE","BGN_AZI","BGN_LOCATI","END_TIME","COUNTY_END",
               "COUNTYENDN","END_RANGE","END_AZI","END_LOCATI","LENGTH",
               "WIDTH","F","MAG","WFO","STATEOFFIC","ZONENAMES","LATITUDE",
               "LONGITUDE","LATITUDE_E","LONGITUDE_","REMARKS","REFNUM") := NULL]
 
-# Prepare date columns
+# Prepare date columns. (Convert from character variable type to date type.)
 suppressMessages(library(lubridate))
 stormdata[, c("BGN_DATE", "END_DATE") 
                     := list(mdy_hms(BGN_DATE), mdy_hms(END_DATE))]
@@ -73,7 +73,7 @@ stormdata <- stormdata[STATE %in% state.abb & BGN_DATE >= mdy("01/01/1996")]
 # Convert damage estimates to US dollars. See section 2.7 "Damage" in this PDF:
 # http://www.ncdc.noaa.gov/stormevents/pd01016005curr.pdf
 
-# Convert property damage amounts to dollars
+# Convert property damage amounts to USD. (Convert exponent code and multiply.)
 stormdata[, PROPDMGEXP := toupper(PROPDMGEXP)]
 stormdata[, PROPDMGEXP := sub("^[^KMB]*$", 0, PROPDMGEXP)]
 stormdata[, PROPDMGEXP := sub("K", 3, PROPDMGEXP, fixed=TRUE)]
@@ -81,7 +81,7 @@ stormdata[, PROPDMGEXP := sub("M", 6, PROPDMGEXP, fixed=TRUE)]
 stormdata[, PROPDMGEXP := sub("B", 9, PROPDMGEXP, fixed=TRUE)]
 stormdata[, PROPDMG := as.numeric(PROPDMG)*10^as.numeric(PROPDMGEXP)]
 
-# Convert crop damage amounts to dollars
+# Convert crop damage amounts to USD. (Convert exponent code and multiply.)
 stormdata[, PROPDMGEXP := toupper(CROPDMGEXP)]
 stormdata[, CROPDMGEXP := sub("^[^KMB]*$", 0, CROPDMGEXP)]
 stormdata[, CROPDMGEXP := sub("K", 3, CROPDMGEXP, fixed=TRUE)]
@@ -104,6 +104,7 @@ Determine the top ten weather event types for injuries with a sum of all
 injuries, grouped by event type, for the entire time period.
 
 ```{r, echo = TRUE, cache=TRUE}
+# Calculate sums by event type, then sort, and find top ten.
 injuries <- health[, .(Injuries=sum(INJURIES)), EVTYPE]
 setkey(injuries, Injuries)
 topteninjuries <- tail(injuries, 10)
@@ -113,6 +114,7 @@ From the list of top ten weather event types for injuries, calculate injury
 sums by event type and month.
 
 ```{r, echo = TRUE, cache=TRUE}
+# Sum by event type and month, convert event type to factor.
 injuriesbymonth <- health[EVTYPE %in% topteninjuries$EVTYPE,
                         .(Injuries=sum(INJURIES)), .(EVTYPE, Month)]
 injuriesbymonth[, "EventType" := factor(EVTYPE, levels=rev(topteninjuries$EVTYPE))]
@@ -124,6 +126,7 @@ Determine the top ten weather event types for fatalities with a sum of all
 fatalities, grouped by event type, for the entire time period.
 
 ```{r, echo = TRUE, cache=TRUE}
+# Calculate sums by event type, then sort, and find top ten.
 fatalities <- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
 setkey(fatalities, Fatalities)
 toptenfatalities <- tail(fatalities, 10)
@@ -133,6 +136,7 @@ From the list of top ten weather event types for fatalities, calculate fatality
 sums by event type and month.
 
 ```{r, echo = TRUE, cache=TRUE}
+# Sum by event type and month, convert event type to factor.
 fatalitiesbymonth <- health[EVTYPE %in% toptenfatalities$EVTYPE,
                         .(Fatalities=sum(FATALITIES)), .(EVTYPE, Month)]
 fatalitiesbymonth[, "EventType" := factor(EVTYPE, levels=rev(toptenfatalities$EVTYPE))]
@@ -152,6 +156,7 @@ Determine the top ten weather event types for property and crop damage with
 a sum of all damage, grouped by event type, for the entire time period.
 
 ```{r, echo = TRUE, cache=TRUE}
+# Calculate sums by event type, then sort, and find top ten.
 damage <- economic[, .(Damage=sum(
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
 setkey(damage, Damage)
@@ -163,6 +168,7 @@ calculate damage sums by event type and month. Convert damage sums to
 millions of US dollars. 
 
 ```{r, echo = TRUE, cache=TRUE}
+# Sum by event type and month, convert event type to factor.
 damagebymonth <- economic[EVTYPE %in% toptendamage$EVTYPE,
     .(Damage=sum(
         sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), 

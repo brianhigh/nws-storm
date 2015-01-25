@@ -79,26 +79,26 @@ img {
 <div id="load-and-preprocess-the-data" class="section level3">
 <h3>Load and preprocess the data</h3>
 <p>Download the compressed CSV file and load it into a data.table. Remove extra columns, format the date columns, add a Month column, filter to include only data from the fifty states of the US, and convert property and crop damage values to US dollars.</p>
-<pre class="r"><code># Download the data file (if missing)
+<pre class="r"><code># Download the data file (if missing).
 url &lt;- &quot;http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2&quot;
 zipfile &lt;- &quot;StormData.csv.bz2&quot;
 if (! file.exists(zipfile)) { 
     download.file(url, zipfile , &quot;auto&quot;) 
 }
 
-# Load into a data table
+# Load into a data.table (faster and more feature-rich than a data.frame).
 library(data.table)
 stormdata &lt;- as.data.table(read.csv(bzfile(zipfile), header = TRUE, 
                       stringsAsFactors = FALSE))
 
-# Remove extra columns
+# Remove extra columns (to free up memory).
 stormdata[, c(&quot;STATE__&quot;,&quot;BGN_TIME&quot;,&quot;TIME_ZONE&quot;,&quot;COUNTY&quot;,&quot;COUNTYNAME&quot;,
               &quot;BGN_RANGE&quot;,&quot;BGN_AZI&quot;,&quot;BGN_LOCATI&quot;,&quot;END_TIME&quot;,&quot;COUNTY_END&quot;,
               &quot;COUNTYENDN&quot;,&quot;END_RANGE&quot;,&quot;END_AZI&quot;,&quot;END_LOCATI&quot;,&quot;LENGTH&quot;,
               &quot;WIDTH&quot;,&quot;F&quot;,&quot;MAG&quot;,&quot;WFO&quot;,&quot;STATEOFFIC&quot;,&quot;ZONENAMES&quot;,&quot;LATITUDE&quot;,
               &quot;LONGITUDE&quot;,&quot;LATITUDE_E&quot;,&quot;LONGITUDE_&quot;,&quot;REMARKS&quot;,&quot;REFNUM&quot;) := NULL]
 
-# Prepare date columns
+# Prepare date columns. (Convert from character variable type to date type.)
 suppressMessages(library(lubridate))
 stormdata[, c(&quot;BGN_DATE&quot;, &quot;END_DATE&quot;) 
                     := list(mdy_hms(BGN_DATE), mdy_hms(END_DATE))]
@@ -112,7 +112,7 @@ stormdata &lt;- stormdata[STATE %in% state.abb &amp; BGN_DATE &gt;= mdy(&quot;01
 # Convert damage estimates to US dollars. See section 2.7 &quot;Damage&quot; in this PDF:
 # http://www.ncdc.noaa.gov/stormevents/pd01016005curr.pdf
 
-# Convert property damage amounts to dollars
+# Convert property damage amounts to USD. (Convert exponent code and multiply.)
 stormdata[, PROPDMGEXP := toupper(PROPDMGEXP)]
 stormdata[, PROPDMGEXP := sub(&quot;^[^KMB]*$&quot;, 0, PROPDMGEXP)]
 stormdata[, PROPDMGEXP := sub(&quot;K&quot;, 3, PROPDMGEXP, fixed=TRUE)]
@@ -120,7 +120,7 @@ stormdata[, PROPDMGEXP := sub(&quot;M&quot;, 6, PROPDMGEXP, fixed=TRUE)]
 stormdata[, PROPDMGEXP := sub(&quot;B&quot;, 9, PROPDMGEXP, fixed=TRUE)]
 stormdata[, PROPDMG := as.numeric(PROPDMG)*10^as.numeric(PROPDMGEXP)]
 
-# Convert crop damage amounts to dollars
+# Convert crop damage amounts to USD. (Convert exponent code and multiply.)
 stormdata[, PROPDMGEXP := toupper(CROPDMGEXP)]
 stormdata[, CROPDMGEXP := sub(&quot;^[^KMB]*$&quot;, 0, CROPDMGEXP)]
 stormdata[, CROPDMGEXP := sub(&quot;K&quot;, 3, CROPDMGEXP, fixed=TRUE)]
@@ -135,22 +135,26 @@ stormdata[, CROPDMG := as.numeric(CROPDMG)*10^as.numeric(CROPDMGEXP)]</code></pr
 <div id="top-10-weather-event-types-for-injuries" class="section level4">
 <h4>Top 10 Weather Event Types for Injuries</h4>
 <p>Determine the top ten weather event types for injuries with a sum of all injuries, grouped by event type, for the entire time period.</p>
-<pre class="r"><code>injuries &lt;- health[, .(Injuries=sum(INJURIES)), EVTYPE]
+<pre class="r"><code># Calculate sums by event type, then sort, and find top ten.
+injuries &lt;- health[, .(Injuries=sum(INJURIES)), EVTYPE]
 setkey(injuries, Injuries)
 topteninjuries &lt;- tail(injuries, 10)</code></pre>
 <p>From the list of top ten weather event types for injuries, calculate injury sums by event type and month.</p>
-<pre class="r"><code>injuriesbymonth &lt;- health[EVTYPE %in% topteninjuries$EVTYPE,
+<pre class="r"><code># Sum by event type and month, convert event type to factor.
+injuriesbymonth &lt;- health[EVTYPE %in% topteninjuries$EVTYPE,
                         .(Injuries=sum(INJURIES)), .(EVTYPE, Month)]
 injuriesbymonth[, &quot;EventType&quot; := factor(EVTYPE, levels=rev(topteninjuries$EVTYPE))]</code></pre>
 </div>
 <div id="top-10-weather-events-for-fatalities" class="section level4">
 <h4>Top 10 Weather Events for Fatalities</h4>
 <p>Determine the top ten weather event types for fatalities with a sum of all fatalities, grouped by event type, for the entire time period.</p>
-<pre class="r"><code>fatalities &lt;- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
+<pre class="r"><code># Calculate sums by event type, then sort, and find top ten.
+fatalities &lt;- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
 setkey(fatalities, Fatalities)
 toptenfatalities &lt;- tail(fatalities, 10)</code></pre>
 <p>From the list of top ten weather event types for fatalities, calculate fatality sums by event type and month.</p>
-<pre class="r"><code>fatalitiesbymonth &lt;- health[EVTYPE %in% toptenfatalities$EVTYPE,
+<pre class="r"><code># Sum by event type and month, convert event type to factor.
+fatalitiesbymonth &lt;- health[EVTYPE %in% toptenfatalities$EVTYPE,
                         .(Fatalities=sum(FATALITIES)), .(EVTYPE, Month)]
 fatalitiesbymonth[, &quot;EventType&quot; := factor(EVTYPE, levels=rev(toptenfatalities$EVTYPE))]</code></pre>
 </div>
@@ -162,12 +166,14 @@ fatalitiesbymonth[, &quot;EventType&quot; := factor(EVTYPE, levels=rev(toptenfat
 <div id="top-10-weather-event-types-for-damage" class="section level4">
 <h4>Top 10 Weather Event Types for Damage</h4>
 <p>Determine the top ten weather event types for property and crop damage with a sum of all damage, grouped by event type, for the entire time period.</p>
-<pre class="r"><code>damage &lt;- economic[, .(Damage=sum(
+<pre class="r"><code># Calculate sums by event type, then sort, and find top ten.
+damage &lt;- economic[, .(Damage=sum(
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
 setkey(damage, Damage)
 toptendamage &lt;- tail(damage, 10)</code></pre>
 <p>From the list of top ten weather event types for crop and property damage, calculate damage sums by event type and month. Convert damage sums to millions of US dollars.</p>
-<pre class="r"><code>damagebymonth &lt;- economic[EVTYPE %in% toptendamage$EVTYPE,
+<pre class="r"><code># Sum by event type and month, convert event type to factor.
+damagebymonth &lt;- economic[EVTYPE %in% toptendamage$EVTYPE,
     .(Damage=sum(
         sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), 
     .(EVTYPE, Month)]
