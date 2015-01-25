@@ -95,7 +95,7 @@ injuries, grouped by event type, for the entire time period.
 injuries <- health[,.(Injuries=sum(INJURIES)), EVTYPE]
 setkey(injuries, Injuries)
 topfiveinjuries <- tail(injuries, 5)
-topfiveinjuries
+topfiveinjuries[order(-Injuries)]
 ```
 
 From the list of top five weather event types for injuries, calculate injury 
@@ -116,7 +116,7 @@ fatalities, grouped by event type, for the entire time period.
 fatalities <- health[,.(Fatalities=sum(FATALITIES)), EVTYPE]
 setkey(fatalities, Fatalities)
 topfivefatalities <- tail(fatalities, 5)
-topfivefatalities
+topfivefatalities[order(-Fatalities)]
 ```
 
 From the list of top five weather event types for fatalities, calculate fatality 
@@ -148,7 +148,7 @@ damage <- economic[,.(Damage=sum(
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
 setkey(damage, Damage)
 topfivedamage <- tail(damage, 5)
-topfivedamage
+topfivedamage[order(-Damage)]
 ```
 
 From the list of top five weather event types for crop and property damage, 

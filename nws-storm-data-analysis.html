@@ -132,13 +132,13 @@ health &lt;- stormdata[STATE %in% state.abb, .(FATALITIES, INJURIES, Month),
 <pre class="r"><code>injuries &lt;- health[,.(Injuries=sum(INJURIES)), EVTYPE]
 setkey(injuries, Injuries)
 topfiveinjuries &lt;- tail(injuries, 5)
-topfiveinjuries</code></pre>
+topfiveinjuries[order(-Injuries)]</code></pre>
 <pre><code>##            EVTYPE Injuries
-## 1:      LIGHTNING     5212
-## 2: EXCESSIVE HEAT     6209
+## 1:        TORNADO    91346
+## 2:      TSTM WIND     6941
 ## 3:          FLOOD     6786
-## 4:      TSTM WIND     6941
-## 5:        TORNADO    91346</code></pre>
+## 4: EXCESSIVE HEAT     6209
+## 5:      LIGHTNING     5212</code></pre>
 <p>From the list of top five weather event types for injuries, calculate injury sums by event type and month.</p>
 <pre class="r"><code>injuriesbymonth &lt;- health[EVTYPE %in% topfiveinjuries$EVTYPE,
                         .(Injuries=sum(INJURIES)), .(EVTYPE, Month)]
@@ -150,13 +150,13 @@ injuriesbymonth[, &quot;EventType&quot; := factor(EVTYPE, levels=rev(topfiveinju
 <pre class="r"><code>fatalities &lt;- health[,.(Fatalities=sum(FATALITIES)), EVTYPE]
 setkey(fatalities, Fatalities)
 topfivefatalities &lt;- tail(fatalities, 5)
-topfivefatalities</code></pre>
+topfivefatalities[order(-Fatalities)]</code></pre>
 <pre><code>##            EVTYPE Fatalities
-## 1:      LIGHTNING        806
-## 2:           HEAT        935
+## 1:        TORNADO       5633
+## 2: EXCESSIVE HEAT       1883
 ## 3:    FLASH FLOOD        939
-## 4: EXCESSIVE HEAT       1883
-## 5:        TORNADO       5633</code></pre>
+## 4:           HEAT        935
+## 5:      LIGHTNING        806</code></pre>
 <p>From the list of top five weather event types for fatalities, calculate fatality sums by event type and month.</p>
 <pre class="r"><code>fatalitiesbymonth &lt;- health[EVTYPE %in% topfivefatalities$EVTYPE,
                         .(Injuries=sum(FATALITIES)), .(EVTYPE, Month)]
@@ -176,13 +176,13 @@ economic &lt;- stormdata[STATE %in% state.abb,
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
 setkey(damage, Damage)
 topfivedamage &lt;- tail(damage, 5)
-topfivedamage</code></pre>
+topfivedamage[order(-Damage)]</code></pre>
 <pre><code>##               EVTYPE    Damage
-## 1:              HAIL  18758.22
-## 2:       STORM SURGE  43323.47
+## 1:             FLOOD 150145.29
+## 2: HURRICANE/TYPHOON  71636.60
 ## 3:           TORNADO  57351.64
-## 4: HURRICANE/TYPHOON  71636.60
-## 5:             FLOOD 150145.29</code></pre>
+## 4:       STORM SURGE  43323.47
+## 5:              HAIL  18758.22</code></pre>
 <p>From the list of top five weather event types for crop and property damage, calculate damage sums by event type and month. Convert damage sums to millions of US dollars.</p>
 <pre class="r"><code>damagebymonth &lt;- economic[EVTYPE %in% topfivedamage$EVTYPE,
     .(Damage=sum(
