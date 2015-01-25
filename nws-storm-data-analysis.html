@@ -137,19 +137,7 @@ stormdata[, CROPDMG := as.numeric(CROPDMG)*10^as.numeric(CROPDMGEXP)]</code></pr
 <p>Determine the top ten weather event types for injuries with a sum of all injuries, grouped by event type, for the entire time period.</p>
 <pre class="r"><code>injuries &lt;- health[, .(Injuries=sum(INJURIES)), EVTYPE]
 setkey(injuries, Injuries)
-topteninjuries &lt;- tail(injuries, 10)
-topteninjuries[order(-Injuries)]</code></pre>
-<pre><code>##                EVTYPE Injuries
-##  1:           TORNADO    91346
-##  2:         TSTM WIND     6941
-##  3:             FLOOD     6786
-##  4:    EXCESSIVE HEAT     6209
-##  5:         LIGHTNING     5212
-##  6:              HEAT     2100
-##  7:         ICE STORM     1975
-##  8:       FLASH FLOOD     1767
-##  9: THUNDERSTORM WIND     1471
-## 10:              HAIL     1361</code></pre>
+topteninjuries &lt;- tail(injuries, 10)</code></pre>
 <p>From the list of top ten weather event types for injuries, calculate injury sums by event type and month.</p>
 <pre class="r"><code>injuriesbymonth &lt;- health[EVTYPE %in% topteninjuries$EVTYPE,
                         .(Injuries=sum(INJURIES)), .(EVTYPE, Month)]
@@ -160,19 +148,7 @@ injuriesbymonth[, &quot;EventType&quot; := factor(EVTYPE, levels=rev(topteninjur
 <p>Determine the top ten weather event types for fatalities with a sum of all fatalities, grouped by event type, for the entire time period.</p>
 <pre class="r"><code>fatalities &lt;- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
 setkey(fatalities, Fatalities)
-toptenfatalities &lt;- tail(fatalities, 10)
-toptenfatalities[order(-Fatalities)]</code></pre>
-<pre><code>##             EVTYPE Fatalities
-##  1:        TORNADO       5633
-##  2: EXCESSIVE HEAT       1883
-##  3:    FLASH FLOOD        939
-##  4:           HEAT        935
-##  5:      LIGHTNING        806
-##  6:      TSTM WIND        502
-##  7:          FLOOD        464
-##  8:    RIP CURRENT        343
-##  9:      HIGH WIND        248
-## 10:      AVALANCHE        224</code></pre>
+toptenfatalities &lt;- tail(fatalities, 10)</code></pre>
 <p>From the list of top ten weather event types for fatalities, calculate fatality sums by event type and month.</p>
 <pre class="r"><code>fatalitiesbymonth &lt;- health[EVTYPE %in% toptenfatalities$EVTYPE,
                         .(Fatalities=sum(FATALITIES)), .(EVTYPE, Month)]

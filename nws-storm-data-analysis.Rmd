@@ -107,7 +107,6 @@ injuries, grouped by event type, for the entire time period.
 injuries <- health[, .(Injuries=sum(INJURIES)), EVTYPE]
 setkey(injuries, Injuries)
 topteninjuries <- tail(injuries, 10)
-topteninjuries[order(-Injuries)]
 ```
 
 From the list of top ten weather event types for injuries, calculate injury 
@@ -128,7 +127,6 @@ fatalities, grouped by event type, for the entire time period.
 fatalities <- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
 setkey(fatalities, Fatalities)
 toptenfatalities <- tail(fatalities, 10)
-toptenfatalities[order(-Fatalities)]
 ```
 
 From the list of top ten weather event types for fatalities, calculate fatality 
