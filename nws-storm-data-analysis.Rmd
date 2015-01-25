@@ -158,7 +158,6 @@ damage <- economic[, .(Damage=sum(
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
 setkey(damage, Damage)
 toptendamage <- tail(damage, 10)
-toptendamage[order(-Damage)]
 ```
 
 From the list of top ten weather event types for crop and property damage, 
@@ -201,6 +200,13 @@ ggplot(injuriesbymonth,
     theme(legend.title=element_blank())
 ```
 
+Here is a table showing the total number of injuries from 1996 to 2011 for 
+the top ten extreme weather types.
+
+```{r, echo = TRUE}
+topteninjuries[order(-Injuries)]
+```
+
 This plot shows the top ten weather event types for fatalities.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
@@ -213,6 +219,13 @@ ggplot(fatalitiesbymonth,
     theme(plot.title = element_text(lineheight=.8, face="bold")) +
     scale_fill_manual(values=cbPalette) +
     theme(legend.title=element_blank())
+```
+
+Here is a table showing the total number of fatalities from 1996 to 2011 for 
+the top ten extreme weather types.
+
+```{r, echo = TRUE}
+toptenfatalities[order(-Fatalities)]
 ```
 
 #### Summary of Health Effects
@@ -239,6 +252,13 @@ ggplot(damagebymonth,
     theme(plot.title = element_text(lineheight=.8, face="bold")) +
     scale_fill_manual(values=cbPalette) + 
     theme(legend.title=element_blank())
+```
+
+Here is a table showing the total damage in millions of US dollars from 1996 
+to 2011 for the top ten extreme weather types.
+
+```{r, echo = TRUE}
+toptendamage[order(-Damage)]
 ```
 
 #### Summary of Economic Effects
