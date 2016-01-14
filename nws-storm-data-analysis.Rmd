@@ -1,7 +1,7 @@
 ---
 title: "Public Health and Economic Impacts of Severe Weather Events in the US"
 author: "Brian High"
-date: "01/25/2015"
+date: "01/14/2016"
 output: 
     html_document:
         keep_md: true
@@ -108,8 +108,20 @@ injuries, grouped by event type, for the entire time period.
 ```{r, echo = TRUE, cache=TRUE}
 # Calculate sums by event type, then sort, and find top ten.
 injuries <- health[, .(Injuries=sum(INJURIES)), EVTYPE]
-setkey(injuries, Injuries)
-topteninjuries <- tail(injuries, 10)
+setorder(injuries, -Injuries)
+topteninjuries <- head(injuries, 10)
+```
+
+Load the `knitr` package so that we can use the `kable()` function.
+
+```{r, message=FALSE}
+library(knitr)
+```
+
+Here is a table of the top ten weather event types for injuries.
+
+```{r, echo = TRUE, cache=TRUE, render='asis'}
+kable(topteninjuries)
 ```
 
 From the list of top ten weather event types for injuries, calculate injury 
@@ -123,20 +135,13 @@ topteninjuriesbymonth <- injuriesbymonth[, "EventType" := factor(EVTYPE,
                                         levels=rev(topteninjuries$EVTYPE))]
 ```
 
-Load the `knitr` package so that we can use the `kable()` function.
-
-```{r, message=FALSE}
-library(knitr)
-```
-
 Here is a table of injury sums by event type and month for the top-ten extreme 
 weather types.
 
-```{r, echo = TRUE, cache=TRUE}
+```{r, echo = FALSE, cache=TRUE, eval=FALSE}
 make_top_ten_event_table <- function(dt) {
     dt <- dt[, !c('EVTYPE'), with=FALSE]
-    setkey(dt, EventType, Month)
-    dt <- dt[,.SD[order(Month)],by=EventType]
+    setorder(dt, EventType, Month)
     kable(dt, align=c('l','r','r'), format="markdown")
 }
 ```
@@ -154,8 +159,14 @@ fatalities, grouped by event type, for the entire time period.
 ```{r, echo = TRUE, cache=TRUE}
 # Calculate sums by event type, then sort, and find top ten.
 fatalities <- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
-setkey(fatalities, Fatalities)
-toptenfatalities <- tail(fatalities, 10)
+setorder(fatalities, -Fatalities)
+toptenfatalities <- head(fatalities, 10)
+```
+
+Here is a table of the top ten weather event types for fatalities.
+
+```{r, echo = TRUE, cache=TRUE, render='asis'}
+kable(toptenfatalities)
 ```
 
 From the list of top ten weather event types for fatalities, calculate fatality 
@@ -196,8 +207,14 @@ a sum of all damage, grouped by event type, for the entire time period.
 # Calculate sums by event type, then sort, and find top ten.
 damage <- economic[, .(Damage=sum(
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
-setkey(damage, Damage)
-toptendamage <- tail(damage, 10)
+setorder(damage, -Damage)
+toptendamage <- head(damage, 10)
+```
+
+Here is a table of the top ten weather event types for damage.
+
+```{r, echo = TRUE, cache=TRUE, render='asis'}
+kable(toptendamage)
 ```
 
 From the list of top ten weather event types for crop and property damage, 
