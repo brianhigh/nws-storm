@@ -109,7 +109,7 @@ injuries, grouped by event type, for the entire time period.
 # Calculate sums by event type, then sort, and find top ten.
 injuries <- health[, .(Injuries=sum(INJURIES)), EVTYPE]
 setorder(injuries, -Injuries)
-topteninjuries <- head(injuries, 10)
+top.ten.injuries <- head(injuries, 10)
 ```
 
 Load the `knitr` package so that we can use the `kable()` function.
@@ -121,7 +121,7 @@ library(knitr)
 Here is a table of the top ten weather event types for injuries.
 
 ```{r, echo = TRUE, cache=TRUE, render='asis'}
-kable(topteninjuries)
+kable(top.ten.injuries)
 ```
 
 From the list of top ten weather event types for injuries, calculate injury 
@@ -129,25 +129,26 @@ sums by event type and month.
 
 ```{r, echo = TRUE, cache=TRUE}
 # Sum by event type and month, convert event type to factor.
-injuriesbymonth <- health[EVTYPE %in% topteninjuries$EVTYPE,
+injuries.by.month <- health[EVTYPE %in% top.ten.injuries$EVTYPE,
                         .(Injuries=sum(INJURIES)), .(EVTYPE, Month)]
-topteninjuriesbymonth <- injuriesbymonth[, "EventType" := factor(EVTYPE, 
-                                        levels=rev(topteninjuries$EVTYPE))]
+top.ten.injuries.by.month <- injuries.by.month[, "EventType" := factor(EVTYPE, 
+                                        levels=rev(top.ten.injuries$EVTYPE))]
 ```
 
 Here is a table of injury sums by event type and month for the top-ten extreme 
 weather types.
 
-```{r, echo = FALSE, cache=TRUE, eval=FALSE}
-make_top_ten_event_table <- function(dt) {
+```{r, echo = FALSE, cache=TRUE}
+make.top.ten.event.table <- function(dt) {
     dt <- dt[, !c('EVTYPE'), with=FALSE]
-    setorder(dt, EventType, Month)
-    kable(dt, align=c('l','r','r'), format="markdown")
+    setorder(dt, -EventType, Month)
+    kable(dt[, c(3,1,2), with = FALSE], 
+          align=c('l','r','r'), format="markdown")
 }
 ```
 
 ```{r, echo = TRUE, cache=TRUE, render='asis'}
-make_top_ten_event_table(topteninjuriesbymonth)
+make.top.ten.event.table(top.ten.injuries.by.month)
 ```
 
 
@@ -160,13 +161,13 @@ fatalities, grouped by event type, for the entire time period.
 # Calculate sums by event type, then sort, and find top ten.
 fatalities <- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
 setorder(fatalities, -Fatalities)
-toptenfatalities <- head(fatalities, 10)
+top.ten.fatalities <- head(fatalities, 10)
 ```
 
 Here is a table of the top ten weather event types for fatalities.
 
 ```{r, echo = TRUE, cache=TRUE, render='asis'}
-kable(toptenfatalities)
+kable(top.ten.fatalities)
 ```
 
 From the list of top ten weather event types for fatalities, calculate fatality 
@@ -174,12 +175,12 @@ sums by event type and month.
 
 ```{r, echo = TRUE, cache=TRUE}
 # Sum by event type and month, convert event type to factor.
-fatalitiesbymonth <- health[EVTYPE %in% toptenfatalities$EVTYPE,
+fatalities.by.month <- health[EVTYPE %in% top.ten.fatalities$EVTYPE,
                         .(Fatalities=sum(FATALITIES)), .(EVTYPE, Month)]
-toptenfatalitiesbymonth <- fatalitiesbymonth[, 
+top.ten.fatalities.by.month <- fatalities.by.month[, 
                                          "EventType" := factor(
                                              EVTYPE, 
-                                             levels=rev(toptenfatalities$EVTYPE)
+                                             levels=rev(top.ten.fatalities$EVTYPE)
                                              )]
 ```
 
@@ -187,7 +188,7 @@ Here is a table of fatality sums by event type and month for the top-ten
 extreme weather types.
 
 ```{r, echo = TRUE, cache=TRUE}
-make_top_ten_event_table(toptenfatalitiesbymonth)
+make.top.ten.event.table(top.ten.fatalities.by.month)
 ```
 
 ### Economic Effects 
@@ -208,13 +209,13 @@ a sum of all damage, grouped by event type, for the entire time period.
 damage <- economic[, .(Damage=sum(
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
 setorder(damage, -Damage)
-toptendamage <- head(damage, 10)
+top.ten.damage <- head(damage, 10)
 ```
 
 Here is a table of the top ten weather event types for damage.
 
 ```{r, echo = TRUE, cache=TRUE, render='asis'}
-kable(toptendamage)
+kable(top.ten.damage)
 ```
 
 From the list of top ten weather event types for crop and property damage, 
@@ -223,13 +224,13 @@ millions of US dollars.
 
 ```{r, echo = TRUE, cache=TRUE}
 # Sum by event type and month, convert event type to factor.
-damagebymonth <- economic[EVTYPE %in% toptendamage$EVTYPE,
+damage.by.month <- economic[EVTYPE %in% top.ten.damage$EVTYPE,
     .(Damage=sum(
         sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), 
     .(EVTYPE, Month)]
-toptendamagebymonth <- damagebymonth[, 
+top.ten.damage.by.month <- damage.by.month[, 
                                      "EventType" := factor(
-                                         EVTYPE, levels=rev(toptendamage$EVTYPE)
+                                         EVTYPE, levels=rev(top.ten.damage$EVTYPE)
                                          )]
 ```
 
@@ -237,7 +238,7 @@ Here is a table of damage sums by event type and month for the top-ten extreme
 weather types.
 
 ```{r, echo = TRUE, cache=TRUE}
-make_top_ten_event_table(toptendamagebymonth)
+make.top.ten.event.table(top.ten.damage.by.month)
 ```
 
 
@@ -259,7 +260,7 @@ This plot shows the top ten weather event types for injuries.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
 library(ggplot2)
-ggplot(injuriesbymonth, 
+ggplot(injuries.by.month, 
        aes(Month, Injuries, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
     ggtitle("Public Health Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Injuries per Month, 1996-2011)") +
@@ -273,14 +274,14 @@ Here is a table showing the total number of injuries from 1996 to 2011 for
 the top ten extreme weather types.
 
 ```{r, echo = TRUE}
-kable(topteninjuries[order(-Injuries)])
+kable(top.ten.injuries)
 ```
 
 This plot shows the top ten weather event types for fatalities.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
 library(ggplot2)
-ggplot(fatalitiesbymonth, 
+ggplot(fatalities.by.month, 
        aes(Month, Fatalities, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
     ggtitle("Public Health Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Fatalities per Month, 1996-2011)") +
@@ -294,7 +295,7 @@ Here is a table showing the total number of fatalities from 1996 to 2011 for
 the top ten extreme weather types.
 
 ```{r, echo = TRUE}
-kable(toptenfatalities[order(-Fatalities)])
+kable(top.ten.fatalities)
 ```
 
 #### Summary of Health Effects
@@ -313,7 +314,7 @@ This plot shows the top ten weather event types for economic impact.
 
 ```{r, echo = TRUE, fig.height=5, fig.width=7}
 library(ggplot2)
-ggplot(damagebymonth, 
+ggplot(damage.by.month, 
        aes(Month, Damage, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
     ggtitle("Economic Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Damage per Month, 1996-2011)") +
@@ -327,7 +328,7 @@ Here is a table showing the total damage in millions of US dollars from 1996
 to 2011 for the top ten extreme weather types.
 
 ```{r, echo = TRUE}
-kable(toptendamage[order(-Damage)])
+kable(top.ten.damage)
 ```
 
 #### Summary of Economic Effects

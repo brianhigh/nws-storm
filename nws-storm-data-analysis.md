@@ -107,7 +107,7 @@ injuries, grouped by event type, for the entire time period.
 # Calculate sums by event type, then sort, and find top ten.
 injuries <- health[, .(Injuries=sum(INJURIES)), EVTYPE]
 setorder(injuries, -Injuries)
-topteninjuries <- head(injuries, 10)
+top.ten.injuries <- head(injuries, 10)
 ```
 
 Load the `knitr` package so that we can use the `kable()` function.
@@ -121,7 +121,7 @@ Here is a table of the top ten weather event types for injuries.
 
 
 ```r
-kable(topteninjuries)
+kable(top.ten.injuries)
 ```
 
 
@@ -145,152 +145,145 @@ sums by event type and month.
 
 ```r
 # Sum by event type and month, convert event type to factor.
-injuriesbymonth <- health[EVTYPE %in% topteninjuries$EVTYPE,
+injuries.by.month <- health[EVTYPE %in% top.ten.injuries$EVTYPE,
                         .(Injuries=sum(INJURIES)), .(EVTYPE, Month)]
-topteninjuriesbymonth <- injuriesbymonth[, "EventType" := factor(EVTYPE, 
-                                        levels=rev(topteninjuries$EVTYPE))]
+top.ten.injuries.by.month <- injuries.by.month[, "EventType" := factor(EVTYPE, 
+                                        levels=rev(top.ten.injuries$EVTYPE))]
 ```
 
 Here is a table of injury sums by event type and month for the top-ten extreme 
 weather types.
 
 
-```r
-make_top_ten_event_table <- function(dt) {
-    dt <- dt[, !c('EVTYPE'), with=FALSE]
-    setorder(dt, EventType, Month)
-    kable(dt, align=c('l','r','r'), format="markdown")
-}
-```
 
 
 ```r
-make_top_ten_event_table(topteninjuriesbymonth)
+make.top.ten.event.table(top.ten.injuries.by.month)
 ```
 
 
 
-|Month | Injuries|         EventType|
-|:-----|--------:|-----------------:|
-|1     |      101|         HIGH WIND|
-|2     |       73|         HIGH WIND|
-|3     |      163|         HIGH WIND|
-|4     |      145|         HIGH WIND|
-|5     |       67|         HIGH WIND|
-|6     |       25|         HIGH WIND|
-|7     |       29|         HIGH WIND|
-|8     |       28|         HIGH WIND|
-|9     |      169|         HIGH WIND|
-|10    |       34|         HIGH WIND|
-|11    |      102|         HIGH WIND|
-|12    |      144|         HIGH WIND|
-|1     |        0|              HEAT|
-|2     |        0|              HEAT|
-|3     |        0|              HEAT|
-|4     |        1|              HEAT|
-|5     |      109|              HEAT|
-|6     |      154|              HEAT|
-|7     |      488|              HEAT|
-|8     |      469|              HEAT|
-|9     |        0|              HEAT|
-|10    |        0|              HEAT|
-|11    |        1|              HEAT|
-|12    |        0|              HEAT|
-|1     |      391|      WINTER STORM|
-|2     |      333|      WINTER STORM|
-|3     |      205|      WINTER STORM|
-|4     |       67|      WINTER STORM|
-|5     |        0|      WINTER STORM|
-|6     |        0|      WINTER STORM|
-|8     |        1|      WINTER STORM|
-|9     |        1|      WINTER STORM|
-|10    |       56|      WINTER STORM|
-|11    |       63|      WINTER STORM|
-|12    |      175|      WINTER STORM|
-|1     |       22| THUNDERSTORM WIND|
-|2     |       58| THUNDERSTORM WIND|
-|3     |       30| THUNDERSTORM WIND|
-|4     |       96| THUNDERSTORM WIND|
-|5     |      149| THUNDERSTORM WIND|
-|6     |      309| THUNDERSTORM WIND|
-|7     |      187| THUNDERSTORM WIND|
-|8     |      376| THUNDERSTORM WIND|
-|9     |       35| THUNDERSTORM WIND|
-|10    |       75| THUNDERSTORM WIND|
-|11    |       32| THUNDERSTORM WIND|
-|12    |       14| THUNDERSTORM WIND|
-|1     |       46|       FLASH FLOOD|
-|2     |        7|       FLASH FLOOD|
-|3     |       20|       FLASH FLOOD|
-|4     |       18|       FLASH FLOOD|
-|5     |       77|       FLASH FLOOD|
-|6     |      227|       FLASH FLOOD|
-|7     |      199|       FLASH FLOOD|
-|8     |      426|       FLASH FLOOD|
-|9     |      328|       FLASH FLOOD|
-|10    |      101|       FLASH FLOOD|
-|11    |      202|       FLASH FLOOD|
-|12    |       13|       FLASH FLOOD|
-|1     |       82|         TSTM WIND|
-|2     |      139|         TSTM WIND|
-|3     |      220|         TSTM WIND|
-|4     |      275|         TSTM WIND|
-|5     |      820|         TSTM WIND|
-|6     |      610|         TSTM WIND|
-|7     |      699|         TSTM WIND|
-|8     |      424|         TSTM WIND|
-|9     |      160|         TSTM WIND|
-|10    |       92|         TSTM WIND|
-|11    |       62|         TSTM WIND|
-|12    |       31|         TSTM WIND|
-|1     |       26|         LIGHTNING|
-|2     |       93|         LIGHTNING|
-|3     |       64|         LIGHTNING|
-|4     |      138|         LIGHTNING|
-|5     |      356|         LIGHTNING|
-|6     |      983|         LIGHTNING|
-|7     |     1228|         LIGHTNING|
-|8     |      827|         LIGHTNING|
-|9     |      290|         LIGHTNING|
-|10    |       85|         LIGHTNING|
-|11    |       22|         LIGHTNING|
-|12    |       11|         LIGHTNING|
-|1     |        0|    EXCESSIVE HEAT|
-|2     |        0|    EXCESSIVE HEAT|
-|3     |        0|    EXCESSIVE HEAT|
-|4     |        0|    EXCESSIVE HEAT|
-|5     |       55|    EXCESSIVE HEAT|
-|6     |      568|    EXCESSIVE HEAT|
-|7     |     3897|    EXCESSIVE HEAT|
-|8     |     1424|    EXCESSIVE HEAT|
-|9     |      131|    EXCESSIVE HEAT|
-|10    |        0|    EXCESSIVE HEAT|
-|11    |        0|    EXCESSIVE HEAT|
-|12    |        0|    EXCESSIVE HEAT|
-|1     |       81|             FLOOD|
-|2     |       23|             FLOOD|
-|3     |       28|             FLOOD|
-|4     |        9|             FLOOD|
-|5     |        3|             FLOOD|
-|6     |      233|             FLOOD|
-|7     |        8|             FLOOD|
-|8     |       82|             FLOOD|
-|9     |      228|             FLOOD|
-|10    |     6038|             FLOOD|
-|11    |        9|             FLOOD|
-|12    |       13|             FLOOD|
-|1     |      697|           TORNADO|
-|2     |     1385|           TORNADO|
-|3     |     2006|           TORNADO|
-|4     |     6978|           TORNADO|
-|5     |     4961|           TORNADO|
-|6     |     1169|           TORNADO|
-|7     |      323|           TORNADO|
-|8     |      355|           TORNADO|
-|9     |      619|           TORNADO|
-|10    |      336|           TORNADO|
-|11    |     1437|           TORNADO|
-|12    |      401|           TORNADO|
+|EventType         | Month| Injuries|
+|:-----------------|-----:|--------:|
+|TORNADO           |     1|      697|
+|TORNADO           |     2|     1385|
+|TORNADO           |     3|     2006|
+|TORNADO           |     4|     6978|
+|TORNADO           |     5|     4961|
+|TORNADO           |     6|     1169|
+|TORNADO           |     7|      323|
+|TORNADO           |     8|      355|
+|TORNADO           |     9|      619|
+|TORNADO           |    10|      336|
+|TORNADO           |    11|     1437|
+|TORNADO           |    12|      401|
+|FLOOD             |     1|       81|
+|FLOOD             |     2|       23|
+|FLOOD             |     3|       28|
+|FLOOD             |     4|        9|
+|FLOOD             |     5|        3|
+|FLOOD             |     6|      233|
+|FLOOD             |     7|        8|
+|FLOOD             |     8|       82|
+|FLOOD             |     9|      228|
+|FLOOD             |    10|     6038|
+|FLOOD             |    11|        9|
+|FLOOD             |    12|       13|
+|EXCESSIVE HEAT    |     1|        0|
+|EXCESSIVE HEAT    |     2|        0|
+|EXCESSIVE HEAT    |     3|        0|
+|EXCESSIVE HEAT    |     4|        0|
+|EXCESSIVE HEAT    |     5|       55|
+|EXCESSIVE HEAT    |     6|      568|
+|EXCESSIVE HEAT    |     7|     3897|
+|EXCESSIVE HEAT    |     8|     1424|
+|EXCESSIVE HEAT    |     9|      131|
+|EXCESSIVE HEAT    |    10|        0|
+|EXCESSIVE HEAT    |    11|        0|
+|EXCESSIVE HEAT    |    12|        0|
+|LIGHTNING         |     1|       26|
+|LIGHTNING         |     2|       93|
+|LIGHTNING         |     3|       64|
+|LIGHTNING         |     4|      138|
+|LIGHTNING         |     5|      356|
+|LIGHTNING         |     6|      983|
+|LIGHTNING         |     7|     1228|
+|LIGHTNING         |     8|      827|
+|LIGHTNING         |     9|      290|
+|LIGHTNING         |    10|       85|
+|LIGHTNING         |    11|       22|
+|LIGHTNING         |    12|       11|
+|TSTM WIND         |     1|       82|
+|TSTM WIND         |     2|      139|
+|TSTM WIND         |     3|      220|
+|TSTM WIND         |     4|      275|
+|TSTM WIND         |     5|      820|
+|TSTM WIND         |     6|      610|
+|TSTM WIND         |     7|      699|
+|TSTM WIND         |     8|      424|
+|TSTM WIND         |     9|      160|
+|TSTM WIND         |    10|       92|
+|TSTM WIND         |    11|       62|
+|TSTM WIND         |    12|       31|
+|FLASH FLOOD       |     1|       46|
+|FLASH FLOOD       |     2|        7|
+|FLASH FLOOD       |     3|       20|
+|FLASH FLOOD       |     4|       18|
+|FLASH FLOOD       |     5|       77|
+|FLASH FLOOD       |     6|      227|
+|FLASH FLOOD       |     7|      199|
+|FLASH FLOOD       |     8|      426|
+|FLASH FLOOD       |     9|      328|
+|FLASH FLOOD       |    10|      101|
+|FLASH FLOOD       |    11|      202|
+|FLASH FLOOD       |    12|       13|
+|THUNDERSTORM WIND |     1|       22|
+|THUNDERSTORM WIND |     2|       58|
+|THUNDERSTORM WIND |     3|       30|
+|THUNDERSTORM WIND |     4|       96|
+|THUNDERSTORM WIND |     5|      149|
+|THUNDERSTORM WIND |     6|      309|
+|THUNDERSTORM WIND |     7|      187|
+|THUNDERSTORM WIND |     8|      376|
+|THUNDERSTORM WIND |     9|       35|
+|THUNDERSTORM WIND |    10|       75|
+|THUNDERSTORM WIND |    11|       32|
+|THUNDERSTORM WIND |    12|       14|
+|WINTER STORM      |     1|      391|
+|WINTER STORM      |     2|      333|
+|WINTER STORM      |     3|      205|
+|WINTER STORM      |     4|       67|
+|WINTER STORM      |     5|        0|
+|WINTER STORM      |     6|        0|
+|WINTER STORM      |     8|        1|
+|WINTER STORM      |     9|        1|
+|WINTER STORM      |    10|       56|
+|WINTER STORM      |    11|       63|
+|WINTER STORM      |    12|      175|
+|HEAT              |     1|        0|
+|HEAT              |     2|        0|
+|HEAT              |     3|        0|
+|HEAT              |     4|        1|
+|HEAT              |     5|      109|
+|HEAT              |     6|      154|
+|HEAT              |     7|      488|
+|HEAT              |     8|      469|
+|HEAT              |     9|        0|
+|HEAT              |    10|        0|
+|HEAT              |    11|        1|
+|HEAT              |    12|        0|
+|HIGH WIND         |     1|      101|
+|HIGH WIND         |     2|       73|
+|HIGH WIND         |     3|      163|
+|HIGH WIND         |     4|      145|
+|HIGH WIND         |     5|       67|
+|HIGH WIND         |     6|       25|
+|HIGH WIND         |     7|       29|
+|HIGH WIND         |     8|       28|
+|HIGH WIND         |     9|      169|
+|HIGH WIND         |    10|       34|
+|HIGH WIND         |    11|      102|
+|HIGH WIND         |    12|      144|
 
 
 #### Top 10 Weather Events for Fatalities
@@ -303,14 +296,14 @@ fatalities, grouped by event type, for the entire time period.
 # Calculate sums by event type, then sort, and find top ten.
 fatalities <- health[, .(Fatalities=sum(FATALITIES)), EVTYPE]
 setorder(fatalities, -Fatalities)
-toptenfatalities <- head(fatalities, 10)
+top.ten.fatalities <- head(fatalities, 10)
 ```
 
 Here is a table of the top ten weather event types for fatalities.
 
 
 ```r
-kable(toptenfatalities)
+kable(top.ten.fatalities)
 ```
 
 
@@ -334,12 +327,12 @@ sums by event type and month.
 
 ```r
 # Sum by event type and month, convert event type to factor.
-fatalitiesbymonth <- health[EVTYPE %in% toptenfatalities$EVTYPE,
+fatalities.by.month <- health[EVTYPE %in% top.ten.fatalities$EVTYPE,
                         .(Fatalities=sum(FATALITIES)), .(EVTYPE, Month)]
-toptenfatalitiesbymonth <- fatalitiesbymonth[, 
+top.ten.fatalities.by.month <- fatalities.by.month[, 
                                          "EventType" := factor(
                                              EVTYPE, 
-                                             levels=rev(toptenfatalities$EVTYPE)
+                                             levels=rev(top.ten.fatalities$EVTYPE)
                                              )]
 ```
 
@@ -348,130 +341,130 @@ extreme weather types.
 
 
 ```r
-make_top_ten_event_table(toptenfatalitiesbymonth)
+make.top.ten.event.table(top.ten.fatalities.by.month)
 ```
 
 
 
-|Month | Fatalities|      EventType|
-|:-----|----------:|--------------:|
-|1     |         57|      AVALANCHE|
-|2     |         41|      AVALANCHE|
-|3     |         46|      AVALANCHE|
-|4     |         21|      AVALANCHE|
-|5     |          1|      AVALANCHE|
-|6     |          1|      AVALANCHE|
-|10    |          0|      AVALANCHE|
-|11    |          8|      AVALANCHE|
-|12    |         48|      AVALANCHE|
-|1     |          0|           HEAT|
-|2     |          0|           HEAT|
-|3     |          0|           HEAT|
-|4     |          0|           HEAT|
-|5     |          5|           HEAT|
-|6     |         62|           HEAT|
-|7     |        103|           HEAT|
-|8     |         57|           HEAT|
-|9     |          7|           HEAT|
-|10    |          1|           HEAT|
-|11    |          0|           HEAT|
-|12    |          0|           HEAT|
-|1     |         22|      HIGH WIND|
-|2     |         20|      HIGH WIND|
-|3     |         34|      HIGH WIND|
-|4     |         20|      HIGH WIND|
-|5     |         16|      HIGH WIND|
-|6     |          1|      HIGH WIND|
-|7     |          4|      HIGH WIND|
-|8     |         12|      HIGH WIND|
-|9     |         28|      HIGH WIND|
-|10    |         19|      HIGH WIND|
-|11    |         26|      HIGH WIND|
-|12    |         33|      HIGH WIND|
-|1     |          3|      TSTM WIND|
-|2     |          6|      TSTM WIND|
-|3     |         11|      TSTM WIND|
-|4     |         20|      TSTM WIND|
-|5     |         39|      TSTM WIND|
-|6     |         30|      TSTM WIND|
-|7     |         70|      TSTM WIND|
-|8     |         37|      TSTM WIND|
-|9     |         13|      TSTM WIND|
-|10    |          6|      TSTM WIND|
-|11    |          3|      TSTM WIND|
-|12    |          1|      TSTM WIND|
-|1     |          3|    RIP CURRENT|
-|2     |          1|    RIP CURRENT|
-|3     |         15|    RIP CURRENT|
-|4     |         21|    RIP CURRENT|
-|5     |         46|    RIP CURRENT|
-|6     |         46|    RIP CURRENT|
-|7     |         65|    RIP CURRENT|
-|8     |         61|    RIP CURRENT|
-|9     |         35|    RIP CURRENT|
-|10    |         13|    RIP CURRENT|
-|11    |          7|    RIP CURRENT|
-|12    |          2|    RIP CURRENT|
-|1     |         52|          FLOOD|
-|2     |         40|          FLOOD|
-|3     |         43|          FLOOD|
-|4     |         33|          FLOOD|
-|5     |         45|          FLOOD|
-|6     |         30|          FLOOD|
-|7     |         11|          FLOOD|
-|8     |         22|          FLOOD|
-|9     |         64|          FLOOD|
-|10    |         40|          FLOOD|
-|11    |         15|          FLOOD|
-|12    |         13|          FLOOD|
-|1     |          3|      LIGHTNING|
-|2     |          7|      LIGHTNING|
-|3     |         12|      LIGHTNING|
-|4     |         24|      LIGHTNING|
-|5     |         54|      LIGHTNING|
-|6     |        148|      LIGHTNING|
-|7     |        185|      LIGHTNING|
-|8     |        140|      LIGHTNING|
-|9     |         53|      LIGHTNING|
-|10    |         12|      LIGHTNING|
-|11    |          1|      LIGHTNING|
-|12    |          3|      LIGHTNING|
-|1     |         53|    FLASH FLOOD|
-|2     |         19|    FLASH FLOOD|
-|3     |         61|    FLASH FLOOD|
-|4     |         46|    FLASH FLOOD|
-|5     |         99|    FLASH FLOOD|
-|6     |        125|    FLASH FLOOD|
-|7     |        112|    FLASH FLOOD|
-|8     |        146|    FLASH FLOOD|
-|9     |        108|    FLASH FLOOD|
-|10    |         35|    FLASH FLOOD|
-|11    |         31|    FLASH FLOOD|
-|12    |         13|    FLASH FLOOD|
-|1     |         35|        TORNADO|
-|2     |        164|        TORNADO|
-|3     |        112|        TORNADO|
-|4     |        563|        TORNADO|
-|5     |        400|        TORNADO|
-|6     |         41|        TORNADO|
-|7     |          9|        TORNADO|
-|8     |         14|        TORNADO|
-|9     |         21|        TORNADO|
-|10    |         17|        TORNADO|
-|11    |        104|        TORNADO|
-|12    |         31|        TORNADO|
-|1     |          0| EXCESSIVE HEAT|
-|2     |          1| EXCESSIVE HEAT|
-|3     |          0| EXCESSIVE HEAT|
-|4     |          6| EXCESSIVE HEAT|
-|5     |         38| EXCESSIVE HEAT|
-|6     |        175| EXCESSIVE HEAT|
-|7     |       1061| EXCESSIVE HEAT|
-|8     |        435| EXCESSIVE HEAT|
-|9     |         74| EXCESSIVE HEAT|
-|10    |          1| EXCESSIVE HEAT|
-|11    |          0| EXCESSIVE HEAT|
-|12    |          0| EXCESSIVE HEAT|
+|EventType      | Month| Fatalities|
+|:--------------|-----:|----------:|
+|EXCESSIVE HEAT |     1|          0|
+|EXCESSIVE HEAT |     2|          1|
+|EXCESSIVE HEAT |     3|          0|
+|EXCESSIVE HEAT |     4|          6|
+|EXCESSIVE HEAT |     5|         38|
+|EXCESSIVE HEAT |     6|        175|
+|EXCESSIVE HEAT |     7|       1061|
+|EXCESSIVE HEAT |     8|        435|
+|EXCESSIVE HEAT |     9|         74|
+|EXCESSIVE HEAT |    10|          1|
+|EXCESSIVE HEAT |    11|          0|
+|EXCESSIVE HEAT |    12|          0|
+|TORNADO        |     1|         35|
+|TORNADO        |     2|        164|
+|TORNADO        |     3|        112|
+|TORNADO        |     4|        563|
+|TORNADO        |     5|        400|
+|TORNADO        |     6|         41|
+|TORNADO        |     7|          9|
+|TORNADO        |     8|         14|
+|TORNADO        |     9|         21|
+|TORNADO        |    10|         17|
+|TORNADO        |    11|        104|
+|TORNADO        |    12|         31|
+|FLASH FLOOD    |     1|         53|
+|FLASH FLOOD    |     2|         19|
+|FLASH FLOOD    |     3|         61|
+|FLASH FLOOD    |     4|         46|
+|FLASH FLOOD    |     5|         99|
+|FLASH FLOOD    |     6|        125|
+|FLASH FLOOD    |     7|        112|
+|FLASH FLOOD    |     8|        146|
+|FLASH FLOOD    |     9|        108|
+|FLASH FLOOD    |    10|         35|
+|FLASH FLOOD    |    11|         31|
+|FLASH FLOOD    |    12|         13|
+|LIGHTNING      |     1|          3|
+|LIGHTNING      |     2|          7|
+|LIGHTNING      |     3|         12|
+|LIGHTNING      |     4|         24|
+|LIGHTNING      |     5|         54|
+|LIGHTNING      |     6|        148|
+|LIGHTNING      |     7|        185|
+|LIGHTNING      |     8|        140|
+|LIGHTNING      |     9|         53|
+|LIGHTNING      |    10|         12|
+|LIGHTNING      |    11|          1|
+|LIGHTNING      |    12|          3|
+|FLOOD          |     1|         52|
+|FLOOD          |     2|         40|
+|FLOOD          |     3|         43|
+|FLOOD          |     4|         33|
+|FLOOD          |     5|         45|
+|FLOOD          |     6|         30|
+|FLOOD          |     7|         11|
+|FLOOD          |     8|         22|
+|FLOOD          |     9|         64|
+|FLOOD          |    10|         40|
+|FLOOD          |    11|         15|
+|FLOOD          |    12|         13|
+|RIP CURRENT    |     1|          3|
+|RIP CURRENT    |     2|          1|
+|RIP CURRENT    |     3|         15|
+|RIP CURRENT    |     4|         21|
+|RIP CURRENT    |     5|         46|
+|RIP CURRENT    |     6|         46|
+|RIP CURRENT    |     7|         65|
+|RIP CURRENT    |     8|         61|
+|RIP CURRENT    |     9|         35|
+|RIP CURRENT    |    10|         13|
+|RIP CURRENT    |    11|          7|
+|RIP CURRENT    |    12|          2|
+|TSTM WIND      |     1|          3|
+|TSTM WIND      |     2|          6|
+|TSTM WIND      |     3|         11|
+|TSTM WIND      |     4|         20|
+|TSTM WIND      |     5|         39|
+|TSTM WIND      |     6|         30|
+|TSTM WIND      |     7|         70|
+|TSTM WIND      |     8|         37|
+|TSTM WIND      |     9|         13|
+|TSTM WIND      |    10|          6|
+|TSTM WIND      |    11|          3|
+|TSTM WIND      |    12|          1|
+|HIGH WIND      |     1|         22|
+|HIGH WIND      |     2|         20|
+|HIGH WIND      |     3|         34|
+|HIGH WIND      |     4|         20|
+|HIGH WIND      |     5|         16|
+|HIGH WIND      |     6|          1|
+|HIGH WIND      |     7|          4|
+|HIGH WIND      |     8|         12|
+|HIGH WIND      |     9|         28|
+|HIGH WIND      |    10|         19|
+|HIGH WIND      |    11|         26|
+|HIGH WIND      |    12|         33|
+|HEAT           |     1|          0|
+|HEAT           |     2|          0|
+|HEAT           |     3|          0|
+|HEAT           |     4|          0|
+|HEAT           |     5|          5|
+|HEAT           |     6|         62|
+|HEAT           |     7|        103|
+|HEAT           |     8|         57|
+|HEAT           |     9|          7|
+|HEAT           |    10|          1|
+|HEAT           |    11|          0|
+|HEAT           |    12|          0|
+|AVALANCHE      |     1|         57|
+|AVALANCHE      |     2|         41|
+|AVALANCHE      |     3|         46|
+|AVALANCHE      |     4|         21|
+|AVALANCHE      |     5|          1|
+|AVALANCHE      |     6|          1|
+|AVALANCHE      |    10|          0|
+|AVALANCHE      |    11|          8|
+|AVALANCHE      |    12|         48|
 
 ### Economic Effects 
 
@@ -493,14 +486,14 @@ a sum of all damage, grouped by event type, for the entire time period.
 damage <- economic[, .(Damage=sum(
     sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), EVTYPE]
 setorder(damage, -Damage)
-toptendamage <- head(damage, 10)
+top.ten.damage <- head(damage, 10)
 ```
 
 Here is a table of the top ten weather event types for damage.
 
 
 ```r
-kable(toptendamage)
+kable(top.ten.damage)
 ```
 
 
@@ -525,13 +518,13 @@ millions of US dollars.
 
 ```r
 # Sum by event type and month, convert event type to factor.
-damagebymonth <- economic[EVTYPE %in% toptendamage$EVTYPE,
+damage.by.month <- economic[EVTYPE %in% top.ten.damage$EVTYPE,
     .(Damage=sum(
         sum(PROPDMG, na.rm=TRUE), sum(CROPDMG, na.rm=TRUE), na.rm=TRUE)/1e6), 
     .(EVTYPE, Month)]
-toptendamagebymonth <- damagebymonth[, 
+top.ten.damage.by.month <- damage.by.month[, 
                                      "EventType" := factor(
-                                         EVTYPE, levels=rev(toptendamage$EVTYPE)
+                                         EVTYPE, levels=rev(top.ten.damage$EVTYPE)
                                          )]
 ```
 
@@ -540,114 +533,114 @@ weather types.
 
 
 ```r
-make_top_ten_event_table(toptendamagebymonth)
+make.top.ten.event.table(top.ten.damage.by.month)
 ```
 
 
 
-|Month |       Damage|         EventType|
-|:-----|------------:|-----------------:|
-|1     |    131.32128|         HIGH WIND|
-|2     |    109.86945|         HIGH WIND|
-|3     |     85.76538|         HIGH WIND|
-|4     |    150.60241|         HIGH WIND|
-|5     |     29.68977|         HIGH WIND|
-|6     |      7.34275|         HIGH WIND|
-|7     |     23.96014|         HIGH WIND|
-|8     |   2499.00250|         HIGH WIND|
-|9     |   2178.67941|         HIGH WIND|
-|10    |    173.04983|         HIGH WIND|
-|11    |    143.71779|         HIGH WIND|
-|12    |    346.91995|         HIGH WIND|
-|5     |      0.00000|    TROPICAL STORM|
-|6     |   5193.30000|    TROPICAL STORM|
-|7     |     22.11900|    TROPICAL STORM|
-|8     |    432.78690|    TROPICAL STORM|
-|9     |   2148.87465|    TROPICAL STORM|
-|10    |    140.83000|    TROPICAL STORM|
-|11    |     50.22100|    TROPICAL STORM|
-|2     |      0.00000|         HURRICANE|
-|7     |    382.17500|         HURRICANE|
-|8     |    380.73500|         HURRICANE|
-|9     |   9982.96700|         HURRICANE|
-|10    |   1353.00101|         HURRICANE|
-|11    |      0.05000|         HURRICANE|
-|1     |   1064.82000|           DROUGHT|
-|2     |    319.22200|           DROUGHT|
-|3     |    241.74700|           DROUGHT|
-|4     |    139.55000|           DROUGHT|
-|5     |    464.12500|           DROUGHT|
-|6     |    923.45300|           DROUGHT|
-|7     |   2115.87200|           DROUGHT|
-|8     |   3722.63700|           DROUGHT|
-|9     |   1981.05600|           DROUGHT|
-|10    |    343.90500|           DROUGHT|
-|11    |    707.78200|           DROUGHT|
-|12    |   2384.29300|           DROUGHT|
-|1     |    480.34820|       FLASH FLOOD|
-|2     |     98.81550|       FLASH FLOOD|
-|3     |    412.85005|       FLASH FLOOD|
-|4     |    542.75590|       FLASH FLOOD|
-|5     |   2518.04038|       FLASH FLOOD|
-|6     |   3832.01792|       FLASH FLOOD|
-|7     |   2766.15341|       FLASH FLOOD|
-|8     |   2431.00271|       FLASH FLOOD|
-|9     |   1904.66009|       FLASH FLOOD|
-|10    |   1024.32485|       FLASH FLOOD|
-|11    |    203.75010|       FLASH FLOOD|
-|12    |     56.33950|       FLASH FLOOD|
-|1     |     90.87038|              HAIL|
-|2     |    106.02311|              HAIL|
-|3     |    851.23538|              HAIL|
-|4     |   3832.38044|              HAIL|
-|5     |   2587.35023|              HAIL|
-|6     |   3231.09485|              HAIL|
-|7     |   1731.81651|              HAIL|
-|8     |    659.50912|              HAIL|
-|9     |    590.24037|              HAIL|
-|10    |   3307.52317|              HAIL|
-|11    |     79.71933|              HAIL|
-|12    |      3.40348|              HAIL|
-|1     |    431.05901|           TORNADO|
-|2     |   1348.10109|           TORNADO|
-|3     |   1504.81577|           TORNADO|
-|4     |   9182.56040|           TORNADO|
-|5     |   7679.00168|           TORNADO|
-|6     |   1411.15210|           TORNADO|
-|7     |    576.73800|           TORNADO|
-|8     |    634.67340|           TORNADO|
-|9     |    681.77240|           TORNADO|
-|10    |    485.10727|           TORNADO|
-|11    |    664.73070|           TORNADO|
-|12    |    300.43590|           TORNADO|
-|1     |      7.04300|       STORM SURGE|
-|2     |      2.29700|       STORM SURGE|
-|3     |      2.45300|       STORM SURGE|
-|4     |      3.99000|       STORM SURGE|
-|5     |      1.46000|       STORM SURGE|
-|6     |      5.74500|       STORM SURGE|
-|7     |     57.75000|       STORM SURGE|
-|8     |  42561.80500|       STORM SURGE|
-|9     |    523.55800|       STORM SURGE|
-|10    |     23.39200|       STORM SURGE|
-|11    |      0.69700|       STORM SURGE|
-|12    |      3.27600|       STORM SURGE|
-|7     |   1761.83000| HURRICANE/TYPHOON|
-|8     |  39307.85000| HURRICANE/TYPHOON|
-|9     |  20366.92080| HURRICANE/TYPHOON|
-|10    |  10200.00000| HURRICANE/TYPHOON|
-|1     | 117736.21410|             FLOOD|
-|2     |    764.58750|             FLOOD|
-|3     |   1965.60790|             FLOOD|
-|4     |   5094.37004|             FLOOD|
-|5     |   6402.88605|             FLOOD|
-|6     |   5821.70885|             FLOOD|
-|7     |   1259.10945|             FLOOD|
-|8     |   3281.38610|             FLOOD|
-|9     |   2782.34131|             FLOOD|
-|10    |   2473.70560|             FLOOD|
-|11    |    231.94605|             FLOOD|
-|12    |    931.36300|             FLOOD|
+|EventType         | Month|       Damage|
+|:-----------------|-----:|------------:|
+|FLOOD             |     1| 117736.21410|
+|FLOOD             |     2|    764.58750|
+|FLOOD             |     3|   1965.60790|
+|FLOOD             |     4|   5094.37004|
+|FLOOD             |     5|   6402.88605|
+|FLOOD             |     6|   5821.70885|
+|FLOOD             |     7|   1259.10945|
+|FLOOD             |     8|   3281.38610|
+|FLOOD             |     9|   2782.34131|
+|FLOOD             |    10|   2473.70560|
+|FLOOD             |    11|    231.94605|
+|FLOOD             |    12|    931.36300|
+|HURRICANE/TYPHOON |     7|   1761.83000|
+|HURRICANE/TYPHOON |     8|  39307.85000|
+|HURRICANE/TYPHOON |     9|  20366.92080|
+|HURRICANE/TYPHOON |    10|  10200.00000|
+|STORM SURGE       |     1|      7.04300|
+|STORM SURGE       |     2|      2.29700|
+|STORM SURGE       |     3|      2.45300|
+|STORM SURGE       |     4|      3.99000|
+|STORM SURGE       |     5|      1.46000|
+|STORM SURGE       |     6|      5.74500|
+|STORM SURGE       |     7|     57.75000|
+|STORM SURGE       |     8|  42561.80500|
+|STORM SURGE       |     9|    523.55800|
+|STORM SURGE       |    10|     23.39200|
+|STORM SURGE       |    11|      0.69700|
+|STORM SURGE       |    12|      3.27600|
+|TORNADO           |     1|    431.05901|
+|TORNADO           |     2|   1348.10109|
+|TORNADO           |     3|   1504.81577|
+|TORNADO           |     4|   9182.56040|
+|TORNADO           |     5|   7679.00168|
+|TORNADO           |     6|   1411.15210|
+|TORNADO           |     7|    576.73800|
+|TORNADO           |     8|    634.67340|
+|TORNADO           |     9|    681.77240|
+|TORNADO           |    10|    485.10727|
+|TORNADO           |    11|    664.73070|
+|TORNADO           |    12|    300.43590|
+|HAIL              |     1|     90.87038|
+|HAIL              |     2|    106.02311|
+|HAIL              |     3|    851.23538|
+|HAIL              |     4|   3832.38044|
+|HAIL              |     5|   2587.35023|
+|HAIL              |     6|   3231.09485|
+|HAIL              |     7|   1731.81651|
+|HAIL              |     8|    659.50912|
+|HAIL              |     9|    590.24037|
+|HAIL              |    10|   3307.52317|
+|HAIL              |    11|     79.71933|
+|HAIL              |    12|      3.40348|
+|FLASH FLOOD       |     1|    480.34820|
+|FLASH FLOOD       |     2|     98.81550|
+|FLASH FLOOD       |     3|    412.85005|
+|FLASH FLOOD       |     4|    542.75590|
+|FLASH FLOOD       |     5|   2518.04038|
+|FLASH FLOOD       |     6|   3832.01792|
+|FLASH FLOOD       |     7|   2766.15341|
+|FLASH FLOOD       |     8|   2431.00271|
+|FLASH FLOOD       |     9|   1904.66009|
+|FLASH FLOOD       |    10|   1024.32485|
+|FLASH FLOOD       |    11|    203.75010|
+|FLASH FLOOD       |    12|     56.33950|
+|DROUGHT           |     1|   1064.82000|
+|DROUGHT           |     2|    319.22200|
+|DROUGHT           |     3|    241.74700|
+|DROUGHT           |     4|    139.55000|
+|DROUGHT           |     5|    464.12500|
+|DROUGHT           |     6|    923.45300|
+|DROUGHT           |     7|   2115.87200|
+|DROUGHT           |     8|   3722.63700|
+|DROUGHT           |     9|   1981.05600|
+|DROUGHT           |    10|    343.90500|
+|DROUGHT           |    11|    707.78200|
+|DROUGHT           |    12|   2384.29300|
+|HURRICANE         |     2|      0.00000|
+|HURRICANE         |     7|    382.17500|
+|HURRICANE         |     8|    380.73500|
+|HURRICANE         |     9|   9982.96700|
+|HURRICANE         |    10|   1353.00101|
+|HURRICANE         |    11|      0.05000|
+|TROPICAL STORM    |     5|      0.00000|
+|TROPICAL STORM    |     6|   5193.30000|
+|TROPICAL STORM    |     7|     22.11900|
+|TROPICAL STORM    |     8|    432.78690|
+|TROPICAL STORM    |     9|   2148.87465|
+|TROPICAL STORM    |    10|    140.83000|
+|TROPICAL STORM    |    11|     50.22100|
+|HIGH WIND         |     1|    131.32128|
+|HIGH WIND         |     2|    109.86945|
+|HIGH WIND         |     3|     85.76538|
+|HIGH WIND         |     4|    150.60241|
+|HIGH WIND         |     5|     29.68977|
+|HIGH WIND         |     6|      7.34275|
+|HIGH WIND         |     7|     23.96014|
+|HIGH WIND         |     8|   2499.00250|
+|HIGH WIND         |     9|   2178.67941|
+|HIGH WIND         |    10|    173.04983|
+|HIGH WIND         |    11|    143.71779|
+|HIGH WIND         |    12|    346.91995|
 
 
 ## Results
@@ -670,7 +663,7 @@ This plot shows the top ten weather event types for injuries.
 
 ```r
 library(ggplot2)
-ggplot(injuriesbymonth, 
+ggplot(injuries.by.month, 
        aes(Month, Injuries, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
     ggtitle("Public Health Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Injuries per Month, 1996-2011)") +
@@ -687,7 +680,7 @@ the top ten extreme weather types.
 
 
 ```r
-kable(topteninjuries[order(-Injuries)])
+kable(top.ten.injuries)
 ```
 
 
@@ -710,7 +703,7 @@ This plot shows the top ten weather event types for fatalities.
 
 ```r
 library(ggplot2)
-ggplot(fatalitiesbymonth, 
+ggplot(fatalities.by.month, 
        aes(Month, Fatalities, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
     ggtitle("Public Health Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Fatalities per Month, 1996-2011)") +
@@ -727,7 +720,7 @@ the top ten extreme weather types.
 
 
 ```r
-kable(toptenfatalities[order(-Fatalities)])
+kable(top.ten.fatalities)
 ```
 
 
@@ -762,7 +755,7 @@ This plot shows the top ten weather event types for economic impact.
 
 ```r
 library(ggplot2)
-ggplot(damagebymonth, 
+ggplot(damage.by.month, 
        aes(Month, Damage, group=EventType, fill=EventType)) +
     geom_bar(stat="identity") +
     ggtitle("Economic Impact of\nTop 10 Most Harmful Weather Event Types\n(Total US Damage per Month, 1996-2011)") +
@@ -779,7 +772,7 @@ to 2011 for the top ten extreme weather types.
 
 
 ```r
-kable(toptendamage[order(-Damage)])
+kable(top.ten.damage)
 ```
 
 
